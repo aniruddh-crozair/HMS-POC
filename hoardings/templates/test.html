@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GeoHoarding POC</title>
+</head>
+<body style="background-color:white; color:black; font-family:sans-serif; padding:20px;">
+  <h2>📸 Capture Hoarding</h2>
+
+  <form id="hoardingForm">
+    <label>Title: <input type="text" id="title" required></label><br><br>
+    <label>Description: <input type="text" id="description"></label><br><br>
+    <label>Price: <input type="number" id="price" step="0.01"></label><br><br>
+    <label>Rating: <input type="number" id="rating" step="0.1" min="0" max="5"></label><br><br>
+
+    <label>Upload Image: <input type="file" id="image" accept="image/*" capture="environment" required></label><br><br>
+
+    <input type="hidden" id="latitude">
+    <input type="hidden" id="longitude">
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <div id="status" style="margin-top:20px;"></div>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000/api"; 
+
+    // Get current location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        document.getElementById("latitude").value = pos.coords.latitude;
+        document.getElementById("longitude").value = pos.coords.longitude;
+      }, (err) => {
+        alert("Location access denied. Please allow GPS.");
+      });
+    } else {
+      alert("Geolocation not supported.");
+    }
+
+    document.getElementById("hoardingForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      const price = document.getElementById("price").value;
+      const rating = document.getElementById("rating").value;
+      const latitude = document.getElementById("latitude").value;
+      const longitude = document.getElementById("longitude").value;
+      const file = document.getElementById("image").files[0];
+
+      const statusDiv = document.getElementById("status");
+      statusDiv.innerText = "Uploading...";
+
+      try {
+        // Step 1: Create Hoarding
+        const hoardingRes = await fetch(`${API_URL}/hoardings/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, description, price, rating })
+        });
+        const hoarding = await hoardingRes.json();
+
+        if (!hoarding.id) throw new Error("Failed to create hoarding");
+
+        // Step 2: Upload image
+        const formData = new FormData();
+        formData.append("hoarding", hoarding.id);
+        formData.append("image", file);
+
+        await fetch(`${API_URL}/images/`, {
+          method: "POST",
+          body: formData
+        });
+
+        // Step 3: Add geotag
+        await fetch(`${API_URL}/geotags/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            hoarding: hoarding.id,
+            latitude,
+            longitude,
+            address: ""
+          })
+        });
+
+        statusDiv.innerText = "Hoarding submitted successfully!";
+      } catch (err) {
+        console.error(err);
+        statusDiv.innerText = "Error submitting hoarding.";
+      }
+    });
+  </script>
+</body>
+</html>

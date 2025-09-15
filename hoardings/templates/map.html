@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GeoHoarding Map (Leaflet)</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <style>
+    body { margin:0; padding:0; }
+    #map { height: 100vh; width: 100%; }
+    .info-popup { font-size: 14px; }
+    .info-popup img { margin-top: 5px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // ✅ Change API URL if you expose it via ngrok or LAN
+    const API_URL = "http://127.0.0.1:8000/api";  
+
+    // Initialize map centered on India
+    const map = L.map("map").setView([20.5937, 78.9629], 5);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap"
+    }).addTo(map);
+
+    // Custom hoarding marker icon (from Django static)
+    const hoardingIcon = L.icon({
+      iconUrl: "{% static 'assets/icons/hoarding.png' %}",
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40]
+    });
+
+    // Fetch all geotags
+    fetch(`${API_URL}/geotags/`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.length === 0) {
+          alert("No hoardings found.");
+          return;
+        }
+
+        data.forEach(tag => {
+          const lat = parseFloat(tag.latitude);
+          const lng = parseFloat(tag.longitude);
+
+          // Add marker for each hoarding
+          const marker = L.marker([lat, lng], { icon: hoardingIcon }).addTo(map);
+
+          // Fetch hoarding details for this tag
+          fetch(`${API_URL}/hoardings/${tag.hoarding}/`)
+            .then(res => res.json())
+            .then(hoarding => {
+              // ✅ Show uploaded image if exists (served from MEDIA_URL)
+              const imgTag = (hoarding.images && hoarding.images.length > 0)
+                ? `<img src="${hoarding.images[0].image}" width="120">`
+                : "<em>No image</em>";
+
+              // ✅ Marker popup content
+              marker.bindPopup(`
+                <div class="info-popup">
+                  <strong>${hoarding.title || "No Title"}</strong><br>
+                  Address: ${hoarding.address || "-"}<br>
+                  Price: ${hoarding.price || "-"}<br>
+                  Rating: ${hoarding.rating || "-"}<br>
+                  ${imgTag}
+                </div>
+              `);
+            })
+            .catch(err => console.error("Error fetching hoarding:", err));
+        });
+      })
+      .catch(err => console.error("Error fetching geotags:", err));
+  </script>
+</body>
+</html>

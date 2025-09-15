@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create Hoarding</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+  <div class="bg-white shadow-lg rounded-xl p-8 w-full max-w-md">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Create New Hoarding</h2>
+
+    <form id="hoardingForm" method="post" enctype="multipart/form-data" class="space-y-4">
+      {% csrf_token %}
+
+      <div>
+        <label class="block text-gray-600 mb-1">Title</label>
+        <input type="text" name="title" 
+          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-gray-600 mb-1">Description</label>
+        <textarea name="description" rows="3"
+          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-gray-600 mb-1">Price</label>
+        <input type="number" step="0.01" name="price" 
+          class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-gray-600 mb-1">Image (Capture / Upload)</label>
+        <input type="file" name="image" accept="image/*" capture="environment"
+          class="w-full text-gray-700 border rounded-lg cursor-pointer bg-gray-50 px-3 py-2">
+      </div>
+
+      <!-- Preview Section -->
+      <div id="previewContainer" class="mt-3 hidden">
+        <p class="text-gray-500 text-sm mb-1">Preview:</p>
+        <img id="previewImage" class="rounded-lg shadow-md max-h-48 mx-auto">
+      </div>
+
+      <!-- hidden fields for location -->
+      <input type="hidden" id="latitude" name="latitude">
+      <input type="hidden" id="longitude" name="longitude">
+
+      <button type="submit"
+        class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg transition">
+        Save Hoarding
+      </button>
+    </form>
+  </div>
+
+  <script>
+    // Get geolocation and put into hidden fields
+    navigator.geolocation.getCurrentPosition(function(position) {
+      document.getElementById("latitude").value = position.coords.latitude;
+      document.getElementById("longitude").value = position.coords.longitude;
+    });
+
+    // Show image preview
+    const fileInput = document.querySelector('input[name="image"]');
+    const previewContainer = document.getElementById("previewContainer");
+    const previewImage = document.getElementById("previewImage");
+
+    fileInput.addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewContainer.classList.remove("hidden");
+          previewImage.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+      } else {
+        previewContainer.classList.add("hidden");
+        previewImage.src = "";
+      }
+    });
+  </script>
+</body>
+</html>
