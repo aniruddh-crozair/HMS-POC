@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-n%7xfj99wh4m*zs^kxr4j*f3cz^(zf0e)ny-8+%1@cd@p)vk(w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -128,9 +128,9 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Extra places to look for static files (during dev)
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static'),
+# ]
 
 # Media files (uploads)
 MEDIA_URL = '/media/'
@@ -153,4 +153,12 @@ CORS_ALLOW_ALL_ORIGINS = True
 # For testing need to remove while deploy
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'c8eb08e597dc.ngrok-free.app']
 
-CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app']
+# CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app']
+# 
+
+
+# Vercel deployment
+# api/settings.py
+ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app']
+# api/settings.py
+WSGI_APPLICATION = 'geo_hoarding.wsgi.application'
