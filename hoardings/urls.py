@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import HoardingImageViewSet, GeoTagViewSet, HoardingViewSet, index, hoarding_map
+from .views import HoardingImageViewSet, GeoTagViewSet, HoardingViewSet, index, hoarding_map, book_hoarding
 
 router = DefaultRouter()
 router.register(r'images', HoardingImageViewSet)
@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('', index, name="index"),
     path('map/', hoarding_map, name='hoarding_map'),
+    path("book/<uuid:hoarding_id>/", book_hoarding, name="book_hoarding"),
 ]

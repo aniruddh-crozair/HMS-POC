@@ -14,7 +14,7 @@ class GeoTagSerializer(serializers.ModelSerializer):
 class HoardingSerializer(serializers.ModelSerializer):
     geotags = GeoTagSerializer(many=True, read_only=True)
     images = HoardingImageSerializer(many=True, read_only=True)
-
+    status = serializers.ReadOnlyField()
     class Meta:
         model = Hoarding
-        fields = ['id', 'title', 'description', 'price', 'rating', 'created_at', 'updated_at', 'geotags', 'images']
+        fields = ['id', 'title', 'description', 'price', 'rating', 'created_at', 'updated_at', 'geotags', 'images', 'status']

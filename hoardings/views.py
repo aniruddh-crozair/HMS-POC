@@ -1,7 +1,8 @@
 from rest_framework import viewsets
-from .models import Hoarding, GeoTag, HoardingImage
-from django.shortcuts import render, redirect, HttpResponse
+from .models import Hoarding, GeoTag, HoardingImage, Customer, Booking
+from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from .serializers import HoardingSerializer, GeoTagSerializer, HoardingImageSerializer
+
 
 class HoardingImageViewSet(viewsets.ModelViewSet):
     queryset = HoardingImage.objects.all().order_by('-created_at')
@@ -66,3 +67,34 @@ def index(request):
 
 def hoarding_map(request):
     return render(request, "map.html") 
+
+
+def book_hoarding(request, hoarding_id):
+    hoarding = get_object_or_404(Hoarding, id=hoarding_id)
+
+    if request.method == 'POST':
+        customer_name = request.POST.get('name')
+        customer_email = request.POST.get('email')
+        customer_phone = request.POST.get('phone')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+
+        # Get or create the customer
+        customer, created = Customer.objects.get_or_create(
+            email = customer_email,
+            defaults = {
+                "name": customer_name,
+                "phone": customer_phone
+            }
+        )
+
+        # Create the booking of hoarding
+        Booking.objects.create(
+            hoarding = hoarding,
+            customer = customer,
+            start_date = start_date,
+            end_date = end_date,
+        )
+
+        return HttpResponse('Hoarding Booked successfully')
+    return render(request, "book_hoarding.html", {'hoarding': hoarding})

@@ -10,15 +10,17 @@
     #map { height: 100vh; width: 100%; }
     .info-popup { font-size: 14px; }
     .info-popup img { margin-top: 5px; border-radius: 5px; }
+    .info-popup button { padding:5px 10px; border:none; border-radius:5px; cursor:pointer; }
+    .book-btn { background:#4CAF50; color:white; }
+    .occupied-btn { background:#f44336; color:white; cursor: not-allowed; }
+    .almost-free-btn { background:#ff9800; color:white; }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // ✅ Change API URL if you expose it via ngrok or LAN
     const API_URL = "http://127.0.0.1:8000/api";  
 
     // Initialize map centered on India
@@ -30,9 +32,23 @@
       attribution: "© OpenStreetMap"
     }).addTo(map);
 
-    // Custom hoarding marker icon (from Django static)
-    const hoardingIcon = L.icon({
-      iconUrl: "{% static 'assets/icons/hoarding.png' %}",
+    // Custom icons
+    const iconAvailable = L.icon({
+      iconUrl: "{% static 'assets/icons/blue-marker.png' %}",
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40]
+    });
+
+    const iconOccupied = L.icon({
+      iconUrl: "{% static 'assets/icons/red-marker.png' %}",
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40]
+    });
+
+    const iconAlmostFree = L.icon({
+      iconUrl: "{% static 'assets/icons/orange-marker.png' %}",
       iconSize: [40, 40],
       iconAnchor: [20, 40],
       popupAnchor: [0, -40]
@@ -41,36 +57,50 @@
     // Fetch all geotags
     fetch(`${API_URL}/geotags/`)
       .then(res => res.json())
-      .then(data => {
-        if (data.length === 0) {
+      .then(tags => {
+        if (!tags.length) {
           alert("No hoardings found.");
           return;
         }
 
-        data.forEach(tag => {
+        tags.forEach(tag => {
           const lat = parseFloat(tag.latitude);
           const lng = parseFloat(tag.longitude);
 
-          // Add marker for each hoarding
-          const marker = L.marker([lat, lng], { icon: hoardingIcon }).addTo(map);
+          // Default marker
+          const marker = L.marker([lat, lng], { icon: iconAvailable }).addTo(map);
 
-          // Fetch hoarding details for this tag
+          // Fetch hoarding details
           fetch(`${API_URL}/hoardings/${tag.hoarding}/`)
             .then(res => res.json())
             .then(hoarding => {
-              // ✅ Show uploaded image if exists (served from MEDIA_URL)
+              // Determine icon based on status
+              let icon = iconAvailable;
+              let buttonHtml = `<a href="/book/${hoarding.id}/"><button class="book-btn">Book Now</button></a>`;
+
+              if (hoarding.status === "Red") {
+                icon = iconOccupied;
+                buttonHtml = `<button class="occupied-btn" disabled>Occupied</button>`;
+              } else if (hoarding.status === "Orange") {
+                icon = iconAlmostFree;
+                buttonHtml = `<button class="almost-free-btn">Almost Free</button>`;
+              }
+
+              marker.setIcon(icon); // Update icon
+
+              // Image preview
               const imgTag = (hoarding.images && hoarding.images.length > 0)
                 ? `<img src="${hoarding.images[0].image}" width="120">`
                 : "<em>No image</em>";
 
-              // ✅ Marker popup content
+              // Bind popup
               marker.bindPopup(`
                 <div class="info-popup">
                   <strong>${hoarding.title || "No Title"}</strong><br>
-                  Address: ${hoarding.address || "-"}<br>
                   Price: ${hoarding.price || "-"}<br>
                   Rating: ${hoarding.rating || "-"}<br>
-                  ${imgTag}
+                  ${imgTag}<br>
+                  ${buttonHtml}
                 </div>
               `);
             })
