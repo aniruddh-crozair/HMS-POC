@@ -66,10 +66,18 @@ def index(request):
 
 
 def hoarding_map(request):
+    """Render the map page"""
     return render(request, "map.html") 
 
 
 def book_hoarding(request, hoarding_id):
+    """
+    Books the hoarding for customer.
+    Args:
+        hoarding_id (int): UUID of hoarding
+    Returns:
+        None
+    """
     hoarding = get_object_or_404(Hoarding, id=hoarding_id)
 
     if request.method == 'POST':
