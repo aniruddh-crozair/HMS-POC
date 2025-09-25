@@ -3,11 +3,6 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 
-# Note
-# 1. Comment for each line
-# 2. Well structured space for each code 
-# 3. Doc string before each class and function and section 
-
 
 class Hoarding(models.Model):
     """
