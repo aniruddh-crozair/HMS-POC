@@ -142,23 +142,16 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # commented by anirudhra rao testing
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:5500",
-    "http://localhost:5500",  
-    "http://127.0.0.1:8000",   
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://127.0.0.1:5500",
+#     "http://localhost:5500",  
+#     "http://127.0.0.1:8000",   
+# ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 
 # For testing need to remove while deploy
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'c8eb08e597dc.ngrok-free.app']
+# ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'c8eb08e597dc.ngrok-free.app']
 
 # CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app']
-# 
 
-
-# Vercel deployment
-# api/settings.py
-ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app']
-# api/settings.py
-WSGI_APPLICATION = 'geo_hoarding.wsgi.application'
